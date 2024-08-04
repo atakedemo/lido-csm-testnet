@@ -1,0 +1,24 @@
+{
+  "name": "cdk-rocketpool-validator",
+  "version": "1.0.0",
+  "bin": {
+    "cdk-rocketpool-validator": "bin/cdk-rocketpool-validator.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/node": "10.17.27",
+    "aws-cdk": "2.15.0",
+    "typescript": "~3.9.7"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-ec2": "^1.146.0",
+    "@aws-cdk/aws-ssm": "^1.139.0",
+    "aws-cdk-lib": "2.15.0",
+    "constructs": "^10.0.0",
+    "source-map-support": "^0.5.16"
+  }
+}
