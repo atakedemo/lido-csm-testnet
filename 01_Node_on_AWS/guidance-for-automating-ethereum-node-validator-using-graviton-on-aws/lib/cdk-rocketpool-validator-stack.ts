@@ -84,6 +84,12 @@ export class CdkRocketpoolValidatorStack extends cdk.Stack {
 
     securityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(8546),
+      'allow geth port: 8546 (WebSocket)',
+    );
+
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
       ec2.Port.tcp(9001),
       'allow ETH2 P2P port: 9001',
     );

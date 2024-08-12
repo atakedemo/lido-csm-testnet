@@ -1,0 +1,13 @@
+[Unit]
+Description=Geth Execution Client (Holesky)
+After=network.target
+Wants=network.target
+
+[Service]
+User=ec2-user
+ExecStart=/home/ec2-user/go-ethereum/build/bin/geth --datadir /home/ec2-user/gethdata/.ethereum --holesky --http --http.addr "0.0.0.0" --http.port 8545 --http.corsdomain "*" --http.api "eth,net,web3,personal" --syncmode "full" --cache=2048 --port 30303 --pprof --metrics --authrpc.jwtsecret=/var/lib/jwtsecret/jwt.hex
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=default.target
