@@ -1,0 +1,15 @@
+[Unit]
+Description=Lighthouse Beacon Node (Holesky)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=ec2-user
+Group=ec2-user
+Type=simple
+Restart=always
+RestartSec=30
+ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse bn --network holesky --datadir /var/lib/lighthouse_beacon --execution-endpoint http://127.0.0.1:8545 --execution-jwt /var/lib/jwtsecret/jwt.hex --checkpoint-sync-url=https://holesky.beaconstate.ethstaker.cc/ --metrics --metrics-port 3100 --validator-monitor-auto --port 9001 --http --http-port 5051 --http-address 0.0.0.0 --builder http://127.0.0.1:18550
+
+[Install]
+WantedBy=multi-user.target

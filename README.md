@@ -56,7 +56,7 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   sudo nano ~/.ssh/authorized_keys
   ```
 
-## 4. 実行(Execution)クライアントをセットアップする(Geth)
+## 4.Executionクライアントをセットアップする(Geth)
 * JWTファイルを生成（後続手順で利用）
   ```bash
   sudo mkdir -p /var/lib/jwtsecret
@@ -119,8 +119,60 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   sudo systemctl enable geth
   sudo systemctl start geth
   ```
+* ブロックの同期状況の確認
+  ```bash
+  /home/ec2-user/go-ethereum/build/bin/geth attach --exec "eth.syncing"
+  ```
 
-## 4. 
+## 5. Consensusクライアントをセットアップする（Lighthouse）
+* Rustをインストール
+  ```bash
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  source $HOME/.cargo/env
+  rustc --version
+  ```
+* X
+* ディレクトリ生成
+  ```bash
+  sudo mkdir -p /var/lib/lighthouse_beacon
+  sudo chown -R ec2-user:ec2-user /var/lib/lighthouse_beacon
+  sudo chmod 700 /var/lib/lighthouse_beacon
+  ```
+
+* systemctlで実行できるよう、設定ファイルを生成する
+  * 下記コマンドを実行し、lighthousebeacon.serviceファイルを生成する
+    ```bash
+    sudo nano /etc/systemd/system/lighthousebeacon.service
+    ```
+  * lighthousebeacon.serviceファイルの記述例
+    ```bash
+    [Unit]
+    Description=Lighthouse Beacon Node (Holesky)
+    Wants=network-online.target
+    After=network-online.target
+
+    [Service]
+    User=ec2-user
+    Group=ec2-user
+    Type=simple
+    Restart=always
+    RestartSec=30
+    ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse bn --network holesky --datadir /var/lib/lighthouse_beacon --execution-endpoint http://127.0.0.1:8545 --execution-jwt /var/lib/jwtsecret/jwt.hex --checkpoint-sync-url=https://holesky.beaconstate.ethstaker.cc/ --metrics --metrics-port 3100 --validator-monitor-auto --port 9001 --http --http-port 5051 --http-address 0.0.0.0 --builder http://127.0.0.1:18550
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+* systemctlで実行する
+  ```
+  sudo systemctl daemon-reload
+  sudo systemctl start lighthousebeacon.service
+  sudo systemctl status lighthousebeacon.service
+  ```
+* インスタンスを再起動した際にも実行されるよう設定
+  ```bash
+  sudo systemctl enable lighthousebeacon.service
+  sudo systemctl restart lighthousebeacon.service
+  ```
 
 # 参考資料
 1. [Presenting the Community Staking Module Testnet](https://blog.lido.fi/presenting-community-staking-testnet/)

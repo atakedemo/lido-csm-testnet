@@ -78,8 +78,20 @@ export class CdkRocketpoolValidatorStack extends cdk.Stack {
 
     securityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(5051),
+      'allow lighthouse port: 5051',
+    );
+
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
       ec2.Port.tcp(8545),
       'allow geth port: 8545',
+    );
+
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(8551),
+      'allow lighthouse port: 8551',
     );
 
     securityGroup.addIngressRule(
@@ -98,6 +110,12 @@ export class CdkRocketpoolValidatorStack extends cdk.Stack {
       ec2.Peer.anyIpv4(),
       ec2.Port.tcp(30303),
       'allow ETH1 P2P port: 30303',
+    );
+
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(18550),
+      'allow lighthouse port: 18550',
     );
 
     const role = new iam.Role(this, 'ec2Role', {
