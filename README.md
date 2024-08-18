@@ -133,9 +133,31 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   rustc --version
   ```
 * 必要ライブラリのインストール
+  * 各種ライブラリ
+    ```bash
+    sudo yum groupinstall "Development Tools" -y
+    sudo yum install gcc-c++ -y
+    sudo yum install -y openssl-devel
+    sudo yum install -y perl-IPC-Cmd
+    sudo yum install -y perl-core
+    ```
+  * cmakeの最新版をインストール（これを行わないとlighthouseのインストールでつまづく）
+    ```bash
+    wget https://cmake.org/files/v3.26/cmake-3.26.4.tar.gz
+    tar -zxvf cmake-3.26.4.tar.gz
+    cd cmake-3.26.4
+
+    ./bootstrap
+    make
+    sudo make install
+    export PATH=/usr/local/bin:$PATH
+    ```
+* Lighthouseのインストール
   ```bash
-  sudo yum groupinstall "Development Tools" -y
-  sudo yum install gcc-c++ -y
+  cd /home/ec2-user
+  git clone https://github.com/sigp/lighthouse.git
+  cd lighthouse
+  make
   ```
 * ディレクトリ生成
   ```bash
