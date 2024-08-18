@@ -205,8 +205,22 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
 * #1で生成した鍵ファイルを取得する
   ```bash
   asset_s3_uri=$(aws ssm get-parameter --name "/lido-csm/asset/s3-uri" --query "Parameter.Value" --output text --region ap-northeast-1)
+  # パスが取得できていることを確認
+  echo $asset_s3_uri
+  sudo unzip ./asset.zip
+  rm -rf asset.zip
   ```
-* X
+* 鍵ファイルを配置する
+  ```bash
+  mkdir validator_keys
+  mv deposit_data-NNNNNN.json validator_keys/
+  mv keystore-m_NNNNN_NNNN_N_N_N-NNNNNNNN.json validator_keys/
+  sudo cp -r validator_keys ~
+  ```
+* パスワードを設定するファイルを生成（後の手順で利用）。#1で生成した際のパスワードを書き込む
+  ```bash
+  sudo nano pw.txt
+  ```
 
 # 参考資料
 1. [Presenting the Community Staking Module Testnet](https://blog.lido.fi/presenting-community-staking-testnet/)
