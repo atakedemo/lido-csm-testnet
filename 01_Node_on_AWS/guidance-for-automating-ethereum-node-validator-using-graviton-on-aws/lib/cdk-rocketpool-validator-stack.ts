@@ -145,32 +145,26 @@ export class CdkRocketpoolValidatorStack extends cdk.Stack {
       blockDevices: [rootVolume]
     });
 
-    // // Create an asset that will be used as part of User Data to run on first load
-    // const config = new Asset(this, 'Config', { path: path.join(__dirname, '../src/config.sh') });
-    // const configPath = ec2Instance.userData.addS3DownloadCommand({
-    //   bucket: config.bucket,
-    //   bucketKey: config.s3ObjectKey
-    // });
-    // ec2Instance.userData.addExecuteFileCommand({
-    //   filePath: configPath,
-    //   arguments: '--verbose -y'
-    // });
-    // config.grantRead(ec2Instance.role);
+    // Upload Private Key to S3
+    const privateKeyAsset = new cdk.aws_s3_assets.Asset(
+      this,
+      'privateKeyAsset',
+      {
+        path: path.join(__dirname, '../../../03_GenerateKeys/staking_deposit-cli-fdab65d-darwin-amd64/validator_keys/deposit_data-1723874458.json'),
+      }
+    );
 
-    // // Install node to run on Prater test network
-    // const install = [`runuser -l  ec2-user -c 'cd /home/ec2-user && sh install.sh -d'`];
-    // ec2Instance.userData.addCommands(...install);
-
-    // const settings = new Asset(this, 'Settings', { path: path.join(__dirname, '../src/user-settings.yml') });
-    // const settingsPath = ec2Instance.userData.addS3DownloadCommand({
-    //   bucket: settings.bucket,
-    //   bucketKey: settings.s3ObjectKey,
-    //   localFile: "/home/ec2-user/.rocketpool/user-settings.yml"
-    // });
-
-    // settings.grantRead(ec2Instance.role);
-    // const chown = [`chown ec2-user:ec2-user /home/ec2-user/.rocketpool/user-settings.yml && chmod 666 /home/ec2-user/.rocketpool/user-settings.yml`];
-    // ec2Instance.userData.addCommands(...chown);
+    // SSM Parameter
+    const privateKeyAssetS3UriParameter = new cdk.aws_ssm.StringParameter(
+      this,
+      'privateKeyAssetS3UriParameter',
+      {
+        parameterName: `/lido-csm/asset/s3-uri`,
+        stringValue: privateKeyAsset.s3ObjectUrl,
+      }
+    );
+    privateKeyAsset.grantRead(ec2Instance);
+    privateKeyAssetS3UriParameter.grantRead(ec2Instance);
 
     // Create outputs for connecting
     new cdk.CfnOutput(this, 'IP Address', { value: ec2Instance.instancePublicIp });

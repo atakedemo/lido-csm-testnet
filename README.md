@@ -6,7 +6,23 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
 * [PoW faucet](https://holesky-faucet.pk910.de/)でHoleskyのETHを取得
 * 事前設定として、付与先のEVMアドレスのGitcoinスコアを上げる
 
-## 2. ノードとして利用するサーバーを立てる @AWS
+## 2. バリデータ用のキーペア作成
+* バイナリファイルのインストール（Mac OSのローカルデバイスにて実施）
+  ```bash
+  curl -LO https://github.com/ethereum/staking-deposit-cli/releases/download/staking_deposit-cli-fdab65d-darwin-amd64.tar.gz
+  echo "8f33bdb78dfbe334ac25d4d5146bb58a43a06b4f3ab02268ceaf003de1ebc4c3 staking_deposit-cli-fdab65d-darwin-amd64.tar.gz" | sha256sum --check
+  ```
+
+* バイナリファイルを解凍する
+  ```bash
+  tar xvf staking_deposit-cli-fdab65d-darwin-amd64.tar.gz
+  ```
+* 鍵ファイルを生成
+  ```bash
+  ./deposit new-mnemonic --num_validators 1 --chain holesky --eth1_withdrawal_address 0xF0179dEC45a37423EAD4FaD5fCb136197872EAd9
+  ```
+
+## ３. ノードとして利用するサーバーを立てる @AWS
 * 必要リソースのインストール
   ```bash
   # Clone the demo CDK application code
@@ -43,18 +59,6 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   3. "CdkRocketpoolValidatorStack/Instance" のインスタンスを選択し、「選択」を押下
   4. 「セッションマネージャー」のメニューから接続
 * X
-* 
-
-## 3. キーペアの作成・セットアップ
-*  キーペアを作成する
-  ```bash
-  ssh-keygen -t ed25519 -C ethnode
-  ```
-*   EC2へアクセスして上記公開鍵を配置する
-  ```bash
-  sudo mkdir -p ~/.ssh
-  sudo nano ~/.ssh/authorized_keys
-  ```
 
 ## 4.Executionクライアントをセットアップする(Geth)
 * JWTファイルを生成（後続手順で利用）
@@ -73,6 +77,7 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   ```
 * データを格納するディレクトリを生成し、Gethクライアントの実行ユーザーに権限を付与する
   ```bash
+  mkdir /home/ec2-user/gethdata/
   mkdir /home/ec2-user/gethdata/.ethereum
   sudo chown -R ec2-user:ec2-user /home/ec2-user/gethdata/
   ```
@@ -111,17 +116,13 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   ```
   sudo systemctl daemon-reload
   sudo systemctl start geth.service
-  sudo systemctl status geth.service
+  sudo systemctl status geth.service -l
   ```
   * 3行目のコード実行後、ステータスが'active (running)'であり、ブロックの同期が始まれば成功
 * インスタンスを再起動した際にも実行されるよう設定
   ```bash
   sudo systemctl enable geth
   sudo systemctl start geth
-  ```
-* ブロックの同期状況の確認
-  ```bash
-  /home/ec2-user/go-ethereum/build/bin/geth attach --exec "eth.syncing"
   ```
 
 ## 5. Consensusクライアントをセットアップする（Lighthouse）
@@ -131,7 +132,11 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   source $HOME/.cargo/env
   rustc --version
   ```
-* X
+* 必要ライブラリのインストール
+  ```bash
+  sudo yum groupinstall "Development Tools" -y
+  sudo yum install gcc-c++ -y
+  ```
 * ディレクトリ生成
   ```bash
   sudo mkdir -p /var/lib/lighthouse_beacon
@@ -166,13 +171,20 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   ```
   sudo systemctl daemon-reload
   sudo systemctl start lighthousebeacon.service
-  sudo systemctl status lighthousebeacon.service
+  sudo systemctl status lighthousebeacon.service -l
   ```
 * インスタンスを再起動した際にも実行されるよう設定
   ```bash
   sudo systemctl enable lighthousebeacon.service
   sudo systemctl restart lighthousebeacon.service
   ```
+
+## 6. バリデータ設定
+* #1で生成した鍵ファイルを取得する
+  ```bash
+  asset_s3_uri=$(aws ssm get-parameter --name "/lido-csm/asset/s3-uri" --query "Parameter.Value" --output text --region ap-northeast-1)
+  ```
+* X
 
 # 参考資料
 1. [Presenting the Community Staking Module Testnet](https://blog.lido.fi/presenting-community-staking-testnet/)
