@@ -221,10 +221,76 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   ```bash
   sudo nano pw.txt
   ```
+* 鍵ファイルを配置
+  ```bash
+  sudo mkdir -p /var/lib/lighthouse_validator
+  sudo /home/ec2-user/lighthouse/target/release/lighthouse account validator import --network holesky --datadir /var/lib/lighthouse_validator --directory=$HOME/validator_keys
+  # #1で設定したパスワードを入力
+  ```
+
+  下記出力を得られることが期待値
+  ```bash
+  Running account manager for holesky network
+  validator-dir path: "/var/lib/csm_lighthouse_validator/validators"
+  WARNING: DO NOT USE THE ORIGINAL KEYSTORES TO VALIDATE WITH ANOTHER CLIENT, OR YOU WILL GET SLASHED.
+
+  Keystore found at "/root/validator_keys/keystore-m_12381_3600_0_0_0-1723874458.json":
+
+  - Public key: 0xb3fa2e9d0b7243c93c05b81c0bdb1343833fa957c16fffa8f856e9115605efa52c668913327517931b488be5305e5dac
+  - UUID: 4d7e1304-0ab4-492d-ac1a-b1370092de12
+
+  If you enter the password it will be stored as plain-text in validator_definitions.yml so that it is not required each time the validator client starts.
+
+  Enter the keystore password, or press enter to omit it:
+
+  Password is correct.
+
+  Successfully imported keystore.
+  Successfully updated validator_definitions.yml.
+
+  Successfully imported 1 validators (0 skipped).
+  ```
+  
+* 新たに生成されたディレクトリの権限を"csm_lighthouse_validator"に指定する
+  ```bash
+  sudo chown -R ec2-user:ec2-user /var/lib/lighthouse_validator
+  sudo chmod 700 /var/lib/lighthouse_validator
+  ```
+* 実行ファイルを生成
+  * "lighthousevalidator.service" を新規作成する
+    ```bash
+    sudo nano /etc/systemd/system/lighthousevalidator.service
+    ```
+  * 下記内容を記載の上、保存する（各パラメータは[Lido提供のドキュメント](https://dvt-homestaker.stakesaurus.com/native-solo-staking-setup/validator-client-setup/lighthouse-vc#configure-the-validator-client-service)を参照）
+    ```bash
+    [Unit]
+    Description=CSM Lighthouse Validator Client (Holesky)
+    Wants=network-online.target
+    After=network-online.target
+
+    [Service]
+    User=ec2-user
+    Group=ec2-user
+    Type=simple
+    Restart=always
+    RestartSec=30
+    ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse vc --network holesky --datadir /var/lib/lighthouse_validator --builder-proposals --beacon-nodes http://0.0.0.0:5051 --metrics --metrics-port 8081 --suggested-fee-recipient 0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8 --graffiti="bamb00.eth" --enable-doppelganger-protection
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+* X
+  ```bash
+  sudo systemctl daemon-reload
+  sudo systemctl start csm_lighthousevalidator.service
+  sudo systemctl status csm_lighthousevalidator.service -l
+  ```
+* X
 
 # 参考資料
 1. [Presenting the Community Staking Module Testnet](https://blog.lido.fi/presenting-community-staking-testnet/)
 2. [Early Adoption for Lido Community Staking Module](https://blog.lido.fi/introducing-early-adoption-for-community-staking-module/)
 3. [CSM Testnet UI](https://csm.testnet.fi/)
 4. [AWS CDKを使用したAmazon EC2上でのEthereumノードバリデーターの自動展開](https://aws.amazon.com/jp/blogs/news/automate-ethereum-node-validator-deployment-on-amazon-ec2-using-aws-cdk/)
-5. [Command-line Options | go-ethereum](https://geth.ethereum.org/docs/fundamentals/command-line-options)
+5. [AWS CDK の aws_s3_assets モジュールを使ってアップロードしたアセットを、EC2 インスタンスにダウンロード可能にしてみた | DevelopersIO](https://dev.classmethod.jp/articles/trying-to-enable-download-of-assets-uploaded-with-aws-cdk-aws_s3_assets-on-ec2-instance/)
+6. [Command-line Options | go-ethereum](https://geth.ethereum.org/docs/fundamentals/command-line-options)
