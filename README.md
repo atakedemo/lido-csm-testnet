@@ -184,7 +184,7 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
     Type=simple
     Restart=always
     RestartSec=30
-    ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse bn --network holesky --datadir /var/lib/lighthouse_beacon --execution-endpoint http://127.0.0.1:8545 --execution-jwt /var/lib/jwtsecret/jwt.hex --checkpoint-sync-url=https://holesky.beaconstate.ethstaker.cc/ --metrics --metrics-port 3100 --validator-monitor-auto --port 9001 --http --http-port 5051 --http-address 0.0.0.0 --builder http://127.0.0.1:18550
+    ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse bn --network holesky --datadir /var/lib/lighthouse_beacon --execution-endpoint http://127.0.0.1:8545 --execution-jwt /var/lib/jwtsecret/jwt.hex --checkpoint-sync-url=https://holesky.beaconstate.ethstaker.cc/ --metrics --metrics-port 3100 --validator-monitor-auto --port 9001 --http --http-port 5051 --builder http://127.0.0.1:18550
 
     [Install]
     WantedBy=multi-user.target
@@ -207,6 +207,8 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   asset_s3_uri=$(aws ssm get-parameter --name "/lido-csm/asset/s3-uri" --query "Parameter.Value" --output text --region ap-northeast-1)
   # パスが取得できていることを確認
   echo $asset_s3_uri
+  cd /home/ec2-user
+  aws s3 cp $asset_s3_uri ./
   sudo unzip ./asset.zip
   rm -rf asset.zip
   ```
@@ -251,7 +253,7 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   Successfully imported 1 validators (0 skipped).
   ```
   
-* 新たに生成されたディレクトリの権限を"csm_lighthouse_validator"に指定する
+* 新たに生成されたディレクトリの権限を付与する
   ```bash
   sudo chown -R ec2-user:ec2-user /var/lib/lighthouse_validator
   sudo chmod 700 /var/lib/lighthouse_validator
@@ -274,7 +276,7 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
     Type=simple
     Restart=always
     RestartSec=30
-    ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse vc --network holesky --datadir /var/lib/lighthouse_validator --builder-proposals --beacon-nodes http://0.0.0.0:5051 --metrics --metrics-port 8081 --suggested-fee-recipient 0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8 --graffiti="bamb00.eth" --enable-doppelganger-protection
+    ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse vc --network holesky --datadir /var/lib/lighthouse_validator --builder-proposals --beacon-nodes http://127.0.0.1:5051 --metrics --metrics-port 8081 --suggested-fee-recipient 0xE73a3602b99f1f913e72F8bdcBC235e206794Ac8 --graffiti="bamb00.eth" --enable-doppelganger-protection
 
     [Install]
     WantedBy=multi-user.target
@@ -282,8 +284,8 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
 * X
   ```bash
   sudo systemctl daemon-reload
-  sudo systemctl start csm_lighthousevalidator.service
-  sudo systemctl status csm_lighthousevalidator.service -l
+  sudo systemctl start lighthousevalidator.service
+  sudo systemctl status lighthousevalidator.service -l
   ```
 * X
 
