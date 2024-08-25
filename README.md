@@ -89,14 +89,14 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
     ```
 *  Gethクライアントを実行する
   ```bash
-  /home/ec2-user/go-ethereum/build/bin/geth --datadir /home/ec2-user/gethdata/.ethereum --holesky --http --http.addr "0.0.0.0" --http.port 8545 --http.corsdomain "*" --http.api "eth,net,web3,personal" --syncmode "full" --cache=2048 --port 30303 --pprof --metrics --authrpc.jwtsecret=/var/lib/jwtsecret/jwt.hex
+  /home/ec2-user/go-ethereum/build/bin/geth --datadir /home/ec2-user/gethdata/.ethereum --holesky --http --http.addr "0.0.0.0" --http.port 8545 --http.corsdomain "*" --http.api "eth,net,web3,personal" --syncmode "full" --cache=2048 --port 30303 --pprof --metrics --authrpc.jwtsecret=/var/lib/jwtsecret/jwt.hex 
   ```
 * systemctlで実行できるよう、設定ファイルを生成する
   * 下記コマンドを実行し、geth.serviceファイルを生成する
     ```bash
     sudo nano /etc/systemd/system/geth.service
     ```
-  * geth.serviceファイルの記述例
+  * geth.serviceファイルの記述例（各パラメータは[Gethのドキュメント](https://geth.ethereum.org/docs/fundamentals/command-line-options)を参照）
     ```
     [Unit]
     Description=Geth Execution Client (Holesky)
@@ -105,7 +105,7 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
 
     [Service]
     User=ec2-user
-    ExecStart=/home/ec2-user/go-ethereum/build/bin/geth --datadir /home/ec2-user/gethdata/.ethereum --holesky --http --http.addr "0.0.0.0" --http.port 8545 --http.corsdomain "*" --http.api "eth,net,web3,personal" --syncmode "full" --cache=2048 --port 30303 --pprof --metrics --authrpc.jwtsecret=/var/lib/jwtsecret/jwt.hex
+    ExecStart=/home/ec2-user/go-ethereum/build/bin/geth --datadir /home/ec2-user/gethdata/.ethereum --holesky --http --http.addr 127.0.01 --http.port 8545 --http.corsdomain "*" --http.api "eth,net,web3,personal" --syncmode "full" --cache=2048 --port 30303 --pprof --metrics --authrpc.jwtsecret=/var/lib/jwtsecret/jwt.hex --ws --http.api "eth,net,web3,personal,engine" --authrpc.addr 127.0.0.1 --authrpc.port 8551 --authrpc.vhosts 127.0.0.1
     Restart=always
     RestartSec=30
 
@@ -124,7 +124,46 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   sudo systemctl enable geth
   sudo systemctl start geth
   ```
+* 下記方法にて、Gethが正常に動いているか確認する
+  * ブロックの同期状況の確認
+    ```bash
+    /home/ec2-user/go-ethereum/build/bin/geth attach --exec eth.syncing --datadir /home/ec2-user/gethdata/.ethereum
+    ```
 
+    ※出力結果
+    ```bash
+    # 同期が完了していない場合（cunnrentBlock: 同期済、heghestBlock: 現在の最新ブロック）
+    {
+      currentBlock: 506087,
+      healedBytecodeBytes: 0,
+      healedBytecodes: 0,
+      healedTrienodeBytes: 0,
+      healedTrienodes: 0,
+      healingBytecode: 0,
+      healingTrienodes: 0,
+      highestBlock: 2200815,
+      startingBlock: 0,
+      syncedAccountBytes: 0,
+      syncedAccounts: 0,
+      syncedBytecodeBytes: 0,
+      syncedBytecodes: 0,
+      syncedStorage: 0,
+      syncedStorageBytes: 0,
+      txIndexFinishedBlocks: 504159,
+      txIndexRemainingBlocks: 0
+    }
+
+    # 同期が完了している場合
+    false
+    ```
+  * 実行レイヤーとしてRPC APIを実行できるか（残高取得のAPIを実行）
+    ```bash
+    curl --data '{"jsonrpc":"2.0","method":"eth_getBalance", "params": ["0x005E687c58e498bF6E6068868Fa6c03D9E806C2C", "latest"], "id":2}' -H "Content-Type: application/json" 127.0.0.1:8545
+    ```
+  * Lighthouseからの問い合わせチャネルが開いているかの確認
+    ```bash
+    curl --data '{"jsonrpc":"2.0","method":"engine_exchangeCapabilities", "params": ["engine_exchangeTransitionConfigurationV1","engine_forkchoiceUpdatedV1","engine_getPayloadBodiesByHash","engine_getPayloadBodiesByRangeV1","engine_getPayloadV1","engine_newPayloadV1"], "id":2}' -H "Content-Type: application/json" 127.0.0.1:8545
+    ```
 ## 5. Consensusクライアントをセットアップする（Lighthouse）
 * Rustをインストール
   ```bash
@@ -184,7 +223,7 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
     Type=simple
     Restart=always
     RestartSec=30
-    ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse bn --network holesky --datadir /var/lib/lighthouse_beacon --execution-endpoint http://127.0.0.1:8545 --execution-jwt /var/lib/jwtsecret/jwt.hex --checkpoint-sync-url=https://holesky.beaconstate.ethstaker.cc/ --metrics --metrics-port 3100 --validator-monitor-auto --port 9001 --http --http-port 5051 --builder http://127.0.0.1:18550
+    ExecStart=/home/ec2-user/lighthouse/target/release/lighthouse bn --network holesky --datadir /var/lib/lighthouse_beacon --execution-endpoint http://127.0.0.1:8551 --execution-jwt /var/lib/jwtsecret/jwt.hex --checkpoint-sync-url=https://holesky.beaconstate.ethstaker.cc/ --metrics --metrics-port 3100 --validator-monitor-auto --port 9001 --http --http-port 5051 --builder http://127.0.0.1:18550
 
     [Install]
     WantedBy=multi-user.target
@@ -286,6 +325,28 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   sudo systemctl daemon-reload
   sudo systemctl start lighthousevalidator.service
   sudo systemctl status lighthousevalidator.service -l
+  ```
+* X
+
+## 7.Mev-Boost 設定
+* X
+* X
+  ```bash
+  [Unit]
+  Description=mev-boost (Holesky)
+  Wants=network-online.target
+  After=network-online.target
+
+  [Service]
+  Type=simple
+  User=ec2-user
+  Group=ec2-user
+  Restart=always
+  RestartSec=30
+  ExecStart=/usr/local/bin/mev-boost -holesky -relay-check -relay https://0xb1559beef7b5ba3127485bbbb090362d9f497ba64e177ee2c8e7db74746306efad687f2cf8574e38d70067d40ef136dc@relay-stag.ultrasound.money/ -relay http://0x821f2a65afb70e7f2e820a925a9b4c80a159620582c1766b1b09729fec178b11ea22abb3a51f07b288be815a1a2ff516@testnet.relay-proxy.blxrbdn.com:18552/ -addr 127.0.0.1:18550
+
+  [Install]
+  WantedBy=multi-user.target
   ```
 * X
 
