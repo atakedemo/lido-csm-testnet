@@ -58,7 +58,6 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   2. EC2のコンソールへ移動
   3. "CdkRocketpoolValidatorStack/Instance" のインスタンスを選択し、「選択」を押下
   4. 「セッションマネージャー」のメニューから接続
-* X
 
 ## 4.Executionクライアントをセットアップする(Geth)
 * JWTファイルを生成（後続手順で利用）
@@ -377,7 +376,11 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   systemctl restart mevboost
   ```
 
-## 8.X
+## 8.Lido CSMにおける鍵設定
+* [CSMダッシュボード Submitメニュー](https://csm.testnet.fi/keys/submit)にて、鍵のJSONファイルをアップロードする
+  * #1で生成した鍵ファイルの内、"deposit_data-..." で始めるファイルの内容を貼付する
+*  LidoでのETH貸与完了するとKey listに鍵が表示される
+  ![Lido CSM - Key list](./99_Assets/02_lidocsm_keylist.png)
 
 # 参考資料
 1. [Presenting the Community Staking Module Testnet](https://blog.lido.fi/presenting-community-staking-testnet/)
