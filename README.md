@@ -329,26 +329,50 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
 * X
 
 ## 7.Mev-Boost 設定
-* X
-* X
+* Mev-Boostのインストール
   ```bash
-  [Unit]
-  Description=mev-boost (Holesky)
-  Wants=network-online.target
-  After=network-online.target
-
-  [Service]
-  Type=simple
-  User=ec2-user
-  Group=ec2-user
-  Restart=always
-  RestartSec=30
-  ExecStart=/usr/local/bin/mev-boost -holesky -relay-check -relay https://0xb1559beef7b5ba3127485bbbb090362d9f497ba64e177ee2c8e7db74746306efad687f2cf8574e38d70067d40ef136dc@relay-stag.ultrasound.money/ -relay http://0x821f2a65afb70e7f2e820a925a9b4c80a159620582c1766b1b09729fec178b11ea22abb3a51f07b288be815a1a2ff516@testnet.relay-proxy.blxrbdn.com:18552/ -addr 127.0.0.1:18550
-
-  [Install]
-  WantedBy=multi-user.target
+  cd /home/ec2-user
+  git clone https://github.com/flashbots/mev-boost.git
+  cd mev-boost
+  git checkout tags/v1.7-alpha1
+  make build
+  sudo cp mev-boost /usr/local/bin
   ```
-* X
+* 実行ファイルを生成
+  * "mevboost.service" を新規作成する
+    ```bash
+    sudo nano /etc/systemd/system/mevboost.service
+    ```
+  * "mevboost.service"ファイルの記述例
+    ```bash
+    [Unit]
+    Description=mev-boost (Holesky)
+    Wants=network-online.target
+    After=network-online.target
+
+    [Service]
+    Type=simple
+    User=ec2-user
+    Group=ec2-user
+    Restart=always
+    RestartSec=30
+    ExecStart=/usr/local/bin/mev-boost -holesky -relay-check -relay https://0xb1559beef7b5ba3127485bbbb090362d9f497ba64e177ee2c8e7db74746306efad687f2cf8574e38d70067d40ef136dc@relay-stag.ultrasound.money/ -relay http://0x821f2a65afb70e7f2e820a925a9b4c80a159620582c1766b1b09729fec178b11ea22abb3a51f07b288be815a1a2ff516@testnet.relay-proxy.blxrbdn.com:18552/ -addr 127.0.0.1:18550
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+* systemctlでMev-Boostを実行
+  ```bash
+  sudo systemctl daemon-reload
+  sudo systemctl start mevboost
+  sudo systemctl status mevboost.service
+  ```
+* 再起動時も実行できるよう設定
+  ```bash
+  systemctl enable mevboost
+  systemctl restart mevboost
+  ```
+## 8.X
 
 # 参考資料
 1. [Presenting the Community Staking Module Testnet](https://blog.lido.fi/presenting-community-staking-testnet/)
