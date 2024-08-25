@@ -150,7 +150,7 @@ export class CdkRocketpoolValidatorStack extends cdk.Stack {
       this,
       'privateKeyAsset',
       {
-        path: path.join(__dirname, '../../../03_GenerateKeys/staking_deposit-cli-fdab65d-darwin-amd64/validator_keys/deposit_data-1723874458.json'),
+        path: path.join(__dirname, '../../../03_GenerateKeys/staking_deposit-cli-fdab65d-darwin-amd64/validator_keys'),
       }
     );
 

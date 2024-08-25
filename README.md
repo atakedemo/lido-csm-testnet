@@ -320,13 +320,17 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
     [Install]
     WantedBy=multi-user.target
     ```
-* X
+* systemctlでバリデータノードを起動
   ```bash
   sudo systemctl daemon-reload
   sudo systemctl start lighthousevalidator.service
   sudo systemctl status lighthousevalidator.service -l
   ```
-* X
+* 再起動時に実行されるよう設定
+  ```bash
+  sudo systemctl enable lighthousevalidator.service
+  sudo systemctl restart lighthousevalidator.service
+  ```
 
 ## 7.Mev-Boost 設定
 * Mev-Boostのインストール
@@ -372,6 +376,7 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
   systemctl enable mevboost
   systemctl restart mevboost
   ```
+
 ## 8.X
 
 # 参考資料
