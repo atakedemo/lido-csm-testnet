@@ -382,6 +382,26 @@ LidoのCSM(Community Staking Module)を試してみるための作業用リポ�
 *  LidoでのETH貸与完了するとKey listに鍵が表示される
   ![Lido CSM - Key list](./99_Assets/02_lidocsm_keylist.png)
 
+## 99. バリデートの終了
+* 下記コマンドを実行し、バリデートを終了する
+  ```bash
+  lighthouse --network holesky account validator exit --keystore /root/validator_keys/keystore-m_12381_3600_0_0_0-1723874458.json --beacon-node http://127.0.0.1:5051
+  ```
+  * "--keystore" のパスは手順#6でインポートされたKeystoreのJSONファイルのパス
+  * パスワードが求められるので、手順#6と同様に入力する
+    ```bash
+    Running account manager for holesky network
+    validator-dir path: "/root/.lighthouse/holesky/validators"
+
+    Enter the keystore password for validator in "/root/validator_keys/keystore-m_12381_3600_0_0_0-1723874458.json":
+
+    Password is correct.
+
+    Publishing a voluntary exit for validator: 0xb3fa2e9d0b7243c93c05b81c0bdb1343833fa957c16fffa8f856e9115605efa52c668913327517931b488be5305e5dac
+
+    WARNING: THIS IS AN IRREVERSIBLE OPERATION
+    ```
+
 # 参考資料
 1. [Presenting the Community Staking Module Testnet](https://blog.lido.fi/presenting-community-staking-testnet/)
 2. [Early Adoption for Lido Community Staking Module](https://blog.lido.fi/introducing-early-adoption-for-community-staking-module/)
